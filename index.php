@@ -92,17 +92,43 @@ public class Jummania {
 
 
     /**
-     * Retrieves the decrypted original string using a hardcoded encrypted text and secret key.
+     * Retrieves the decrypted original string using hardcoded obfuscated input and a predefined secret key.
      * <p>
-     * This method internally constructs a {@link javax.crypto.SecretKey} from a predefined obfuscated Base64 key string,
-     * and then decrypts a predefined obfuscated and Base64-encoded string using that key.
+     * This method uses a hardcoded string as the AES key (in obfuscated form) and another hardcoded
+     * string as the encrypted input. It reconstructs the AES {@link javax.crypto.SecretKey} from the key,
+     * then decrypts the encrypted input (which has been character-shifted and Base64-encoded) to return
+     * the original plain text.
      *
-     * @return the decrypted original string
-     * @throws Exception if any error occurs during key reconstruction or decryption
+     * @return the decrypted original plain text
+     * @throws Exception if any error occurs during secret key reconstruction or decryption
      */
     public String getString() throws Exception {
-        javax.crypto.SecretKey secretKey = getSecretKey("$encKeyChars");
-        return getString(secretKey, "$shiftedEnc");
+        return getString("$encKeyChars", "$shiftedEnc");
+    }
+    
+    
+     /**
+     * Decrypts an obfuscated and Base64-encoded string using AES with the provided secret key.
+     * <p>
+     * The decryption process involves three steps:
+     * <ol>
+     *   <li>Reverse the character shift applied during encryption (each character is decremented by 1).</li>
+     *   <li>Decode the result from Base64 to obtain the original encrypted bytes.</li>
+     *   <li>Decrypt the bytes using the AES algorithm and the given secret key.</li>
+     * </ol>
+     *
+     * @param secretKey     the string used to derive the AES {@link javax.crypto.SecretKey} for decryption
+     * @param encryptedText the input string that was obfuscated, Base64-encoded, and AES-encrypted
+     * @return the original plaintext string after successful decryption
+     * @throws Exception if any step of the decryption process fails (e.g., Base64 decoding, cipher setup, or AES decryption)
+     */
+    private String getString(String secretKey, String encryptedText) throws Exception {
+        String string = shiftChars(encryptedText, 1);
+        java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
+        byte[] encryptedTextByte = decoder.decode(string);
+        javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES");
+        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, getSecretKey(secretKey));
+        return new String(cipher.doFinal(encryptedTextByte));
     }
 
 
@@ -117,27 +143,6 @@ public class Jummania {
         String string = shiftChars(key, -1);
         byte[] decodedKey = java.util.Base64.getDecoder().decode(string);
         return new javax.crypto.spec.SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-    }
-
-
-    /**
-     * Decrypts an encrypted Base64-encoded string using the provided AES secret key.
-     * <p>
-     * The input string is first character-shifted (each character increased by 1),
-     * then decoded from Base64, and finally decrypted using AES.
-     *
-     * @param secretKey     the AES {@link javax.crypto.SecretKey} used for decryption
-     * @param encryptedText the obfuscated and Base64-encoded string to decrypt
-     * @return the original plain text after decryption
-     * @throws Exception if any decryption step fails (e.g., decoding, cipher initialization, or decryption)
-     */
-    private String getString(javax.crypto.SecretKey secretKey, String encryptedText) throws Exception {
-        String string = shiftChars(encryptedText, 1);
-        java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
-        byte[] encryptedTextByte = decoder.decode(string);
-        javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES");
-        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, secretKey);
-        return new String(cipher.doFinal(encryptedTextByte));
     }
 
 
