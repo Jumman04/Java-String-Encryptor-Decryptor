@@ -29,19 +29,10 @@ This keeps your original string hidden and safe.
 
 ## 🌐 Usage
 
-Visit:
-
-[https://jummania.com/App/java-string-encryptor/](https://jummania.com/App/java-string-encryptor/)
-
-The tool will return valid Java code with your encrypted string and auto-decryption logic.
-
----
-
-## 🧪 Example
-
-### Input:
+### Visit:
 
 https://jummania.com/App/java-string-encryptor/?string=YourSecretText
+The tool will return valid Java code with your encrypted string and auto-decryption logic.
 
 ### Output Java Code:
 
