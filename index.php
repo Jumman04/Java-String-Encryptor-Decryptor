@@ -100,7 +100,7 @@ public class Jummania {
      * @return the decrypted original string
      * @throws Exception if any error occurs during key reconstruction or decryption
      */
-    public static String getString() throws Exception {
+    public String getString() throws Exception {
         javax.crypto.SecretKey secretKey = getSecretKey("$encKeyChars");
         return getString(secretKey, "$shiftedEnc");
     }
@@ -113,7 +113,7 @@ public class Jummania {
      * @param key The obfuscated Base64-encoded AES key string
      * @return SecretKey instance for AES algorithm
      */
-    public javax.crypto.SecretKey getSecretKey(String key) {
+    private javax.crypto.SecretKey getSecretKey(String key) {
         String string = shiftChars(key, -1);
         byte[] decodedKey = java.util.Base64.getDecoder().decode(string);
         return new javax.crypto.spec.SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
@@ -131,7 +131,7 @@ public class Jummania {
      * @return the original plain text after decryption
      * @throws Exception if any decryption step fails (e.g., decoding, cipher initialization, or decryption)
      */
-    public static String getString(javax.crypto.SecretKey secretKey, String encryptedText) throws Exception {
+    private String getString(javax.crypto.SecretKey secretKey, String encryptedText) throws Exception {
         String string = shiftChars(encryptedText, 1);
         java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
         byte[] encryptedTextByte = decoder.decode(string);
@@ -149,7 +149,7 @@ public class Jummania {
      * @param shift The integer shift to apply (positive or negative)
      * @return The shifted string after applying the character shift
      */
-    public static String shiftChars(String input, int shift) {
+    private String shiftChars(String input, int shift) {
         StringBuilder result = new StringBuilder();
         for (char c : input.toCharArray()) {
             result.append((char) (c + shift));
