@@ -1,6 +1,7 @@
 # 🔐 Java String Encryptor Code Generator (PHP Tool)
 
-A lightweight PHP tool that **generates Java code** for securely decrypting strings — ideal for keeping sensitive strings safe from Java decompilers.
+A lightweight PHP tool that generates Java code to **securely decrypt encrypted strings at runtime** — designed to keep
+sensitive data hidden from Java decompilers.
 
 ---
 
@@ -32,8 +33,6 @@ Visit:
 
 [https://jummania.com/App/java-string-encryptor/](https://jummania.com/App/java-string-encryptor/)
 
-
-
 The tool will return valid Java code with your encrypted string and auto-decryption logic.
 
 ---
@@ -45,6 +44,7 @@ The tool will return valid Java code with your encrypted string and auto-decrypt
 https://jummania.com/App/java-string-encryptor/?string=YourSecretText
 
 ### Output Java Code:
+
 ```java
 public class Jummania {
 
