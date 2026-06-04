@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Java Code Generator</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+
+<style>
+body{
+    margin:0;
+    padding:20px;
+    font-family:Arial,sans-serif;
+}
+pre{
+    white-space:pre-wrap;
+    word-wrap:break-word;
+}
+</style>
+</head>
+<body>
+
+<pre><code id="code" class="language-java"></code></pre>
+
+<script>
+
+function shiftChars(input, shift){
+    let output = "";
+    for(let i = 0; i < input.length; i++){
+        output += String.fromCharCode(
+            input.charCodeAt(i) + shift
+        );
+    }
+    return output;
+}
+
+function randomBase64Key(){
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+
+    let binary = "";
+    bytes.forEach(b => binary += String.fromCharCode(b));
+
+    return btoa(binary).replace(/=/g,"");
+}
+
+function getParam(name){
+    return new URLSearchParams(location.search).get(name);
+}
+
+const string = getParam("string");
+const code = document.getElementById("code");
+
+if(!string){
+
+    const currentUrl =
+        location.origin +
+        location.pathname;
+
+    code.textContent =
+`Exception in thread "main" java.lang.IllegalStateException: string must not be null
+    at com.jummania.link.Main.main(Main.java:10)
+
+Usage: ${currentUrl}?string=your_encrypted_text_here`;
+
+}else{
+
+    const base64Key = randomBase64Key();
+    const encKeyChars = shiftChars(base64Key, 1);
+
+    const shiftedEnc =
+        shiftChars(
+            btoa(string).replace(/=/g,""),
+            -1
+        );
+
+    const created =
+        new Date().toLocaleDateString();
+
+    code.textContent =
+`public class Jummania {
+
+    public String getString() throws Exception {
+        return getString("${encKeyChars}", "${shiftedEnc}");
+    }
+
+    private String getString(
+            String secretKey,
+            String encryptedText
+    ) throws Exception {
+
+        String string =
+                shiftChars(encryptedText, 1);
+
+        byte[] encryptedTextByte =
+                java.util.Base64
+                        .getDecoder()
+                        .decode(string);
+
+        javax.crypto.Cipher cipher =
+                javax.crypto.Cipher
+                        .getInstance("AES");
+
+        cipher.init(
+                javax.crypto.Cipher.DECRYPT_MODE,
+                getSecretKey(secretKey)
+        );
+
+        return new String(
+                cipher.doFinal(encryptedTextByte)
+        );
+    }
+
+    private javax.crypto.SecretKey
+    getSecretKey(String key){
+
+        String string =
+                shiftChars(key, -1);
+
+        byte[] decodedKey =
+                java.util.Base64
+                        .getDecoder()
+                        .decode(string);
+
+        return new javax.crypto.spec.SecretKeySpec(
+                decodedKey,
+                0,
+                decodedKey.length,
+                "AES"
+        );
+    }
+
+    private String shiftChars(
+            String input,
+            int shift
+    ){
+        StringBuilder result =
+                new StringBuilder();
+
+        for(char c : input.toCharArray()){
+            result.append(
+                    (char)(c + shift)
+            );
+        }
+
+        return result.toString();
+    }
+}`;
+}
+
+hljs.highlightAll();
+
+</script>
+
+</body>
+</html>
