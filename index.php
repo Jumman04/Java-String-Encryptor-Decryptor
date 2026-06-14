@@ -1,14 +1,17 @@
 <?php
+
+$rInt = mt_rand(1, 9); 
+
 /**
  * Jummania.php
  *
  * A PHP implementation that mirrors the functionality of the Java `Jummania` class.
  *
  * Features:
- * 1. Generates a 128-bit AES key, Base64-encodes it (without padding), and shifts each character by +1.
- * 2. Reverses the obfuscation to recover the raw key by shifting characters by -1 and Base64-decoding.
- * 3. Encrypts a URL using AES/ECB/PKCS5Padding, Base64-encodes the result, and shifts each character by -1.
- * 4. To decrypt, shifts characters back by +1, Base64-decodes, and decrypts to retrieve the original URL.
+ * 1. Generates a 128-bit AES key, Base64-encodes it (without padding), and shifts each character by +$rInt.
+ * 2. Reverses the obfuscation to recover the raw key by shifting characters by -$rInt and Base64-decoding.
+ * 3. Encrypts a URL using AES/ECB/PKCS5Padding, Base64-encodes the result, and shifts each character by -$rInt.
+ * 4. To decrypt, shifts characters back by +$rInt, Base64-decodes, and decrypts to retrieve the original URL.
  *
  * Author: Jummania
  * Date: 2024-05-14
@@ -52,24 +55,24 @@ function shiftChars(string $input, int $shift): string
     return $output;
 }
 
-// 2. Obfuscate the key: shift each character by +1
-$encKeyChars = shiftChars($base64Key, +1);
-$secretKey = base64_decode(shiftChars($encKeyChars, -1));
+// 2. Obfuscate the key: shift each character by +$rInt
+$encKeyChars = shiftChars($base64Key, +$rInt);
+$secretKey = base64_decode(shiftChars($encKeyChars, -$rInt));
 
-// 4. Encrypt the text and shift each char by -1
-function encryptShift(string $plainText, string $key): string
+// 4. Encrypt the text and shift each char by -$rInt
+function encryptShift(string $plainText, string $key, int $shift): string
 {
     $encrypted = openssl_encrypt($plainText, 'AES-128-ECB', $key, OPENSSL_RAW_DATA);
     $b64 = rtrim(base64_encode($encrypted), '=');
 
     $shifted = '';
     for ($i = 0, $l = strlen($b64); $i < $l; $i++) {
-        $shifted .= chr(ord($b64[$i]) - 1);
+        $shifted .= chr(ord($b64[$i]) - $shift);
     }
     return $shifted;
 }
 
-$shiftedEnc = encryptShift($string, $secretKey);
+$shiftedEnc = encryptShift($string, $secretKey, $rInt);
 
 $created = date("d/n/y");
 $javaCode = <<<JAVA
@@ -112,7 +115,7 @@ public class Jummania {
      * <p>
      * The decryption process involves three steps:
      * <ol>
-     *   <li>Reverse the character shift applied during encryption (each character is decremented by 1).</li>
+     *   <li>Reverse the character shift applied during encryption (each character is decremented by $rInt).</li>
      *   <li>Decode the result from Base64 to obtain the original encrypted bytes.</li>
      *   <li>Decrypt the bytes using the AES algorithm and the given secret key.</li>
      * </ol>
@@ -123,7 +126,7 @@ public class Jummania {
      * @throws Exception if any step of the decryption process fails (e.g., Base64 decoding, cipher setup, or AES decryption)
      */
     private String getString(String secretKey, String encryptedText) throws Exception {
-        String string = shiftChars(encryptedText, 1);
+        String string = shiftChars(encryptedText, $rInt);
         java.util.Base64.Decoder decoder = java.util.Base64.getDecoder();
         byte[] encryptedTextByte = decoder.decode(string);
         javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES");
@@ -134,13 +137,13 @@ public class Jummania {
 
     /**
      * Converts an obfuscated Base64-encoded AES key string into a SecretKey object.
-     * The input string is shifted by -1 on each character before Base64 decoding.
+     * The input string is shifted by -$rInt on each character before Base64 decoding.
      * 
      * @param key The obfuscated Base64-encoded AES key string
      * @return SecretKey instance for AES algorithm
      */
     private javax.crypto.SecretKey getSecretKey(String key) {
-        String string = shiftChars(key, -1);
+        String string = shiftChars(key, -$rInt);
         byte[] decodedKey = java.util.Base64.getDecoder().decode(string);
         return new javax.crypto.spec.SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
     }
